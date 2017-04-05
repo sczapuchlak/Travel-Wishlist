@@ -76,35 +76,27 @@ router.post('/add', function(req, res, next) {
 
 
 /* PUT - update whether a place has been visited or not */
-router.put('/update', function(req, res){
-
-    var id = req.body.id;
-    var visited = req.body.visited == "true";  //
-    for (var i = 0 ; i < places.length ; i++) {
-        var place = places[i];
-        if (place.id == id) {
-            place.visited = visited;
-            places[i] = place;
-        }
-    }
-
-    console.log('After PUT, the places list is');
-    console.log(places);
-
-    res.json(place);
-
-});
-
-//delete a location
-router.post('/delete', function(req, res, next){
-    console.log(req.body);
-    req.db.collection('travel').deleteOne(useID(req.body), function(err){
-
+router.put('/update', function(req, res, next){
+    var update = { $set : { visited : req.body.visited == "true" }};  // all the body parameters are strings
+    req.db.collection('travel').findOneAndUpdate(useId(req.body), update, function(err, place)
+    {
         if (err) {
             return next(err);
         }
-        return res.redirect('/');
+        res.json(translateId(place));
+    });
+});
 
+//delete button working
+//removes from database
+router.delete('/delete', function(req, res, next){
+
+    req.db.collection('travel').remove(useID(req.body), function(err){
+        if (err) {
+            return next(err);
+        }
+        res.status(200);
+        res.json(findID(req.body));
     });
 
 });
