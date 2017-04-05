@@ -1,0 +1,14 @@
+<ul>
+    {{#each travel}}
+        <li>
+            <a href="/details/{{this.name}}">{{this.name}}</a>
+        </li>
+    {{/each}}
+</ul><h2>Add New Location?</h2>
+
+
+<form action="/addPlace" method="POST">
+    Name <input type="text" name="name" placeholder="Name" required><br>
+    Visited <input type="text" name="Visited" placeholder="Visited?" required><br>
+    <button type="submit">Save</button>
+</form>

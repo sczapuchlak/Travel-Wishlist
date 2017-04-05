@@ -1,48 +1,76 @@
 var express = require('express');
 var router = express.Router();
+var ObjectID = require('mongodb').ObjectID;
+
 
 
 // "Database". Names of places, and whether the user has visited it or not.
 
-var places = [
-{id: "1", name: "Rome", visited: true},
-{id: "2", name: "New York", visited: false},
-{id: "3", name: "Tokyo", visited: false}
-];
-var counter = places.length;
+//var places = [
+//{id: "1", name: "Rome", visited: true},
+//{id: "2", name: "New York", visited: false},
+//{id: "3", name: "Tokyo", visited: false}
+//];
+//var counter = places.length;
 
+function findID(obj) {
+    obj.id = obj._id;
+    delete obj._id;
+    return obj;
+}
+
+function useID(obj) {
+    obj._id = ObjectID(obj.id);
+    delete obj.id;
+    return obj;
+}
 
 /* GET home page. */
-router.get('/', function(req, res) {
-  res.render('index', { title: 'Travel Wish List', places : places });
+router.get('/', function(req, res, next) {
+    req.db.collection('travel').find().toArray(function (err, places)
+    {
+        if (err) {
+            return next(err)
+        }
+        return res.render('index', {layout: 'layout', title: 'Travel Wish List'});
+    });
 });
 
 
 /* GET all items home page. */
 router.get('/all', function(req, res) {
-  res.json(places);
+
+   // router.get('/all', function(req, res) {
+       // res.json(places);
+    //});
+
+
+
+    req.db.collection('travel').find().toArray(function (err, places)
+    {
+        if (err) {
+            return next(err)
+        }
+        res.json(places.map(findID));
+    });
 });
 
 
 /* POST - add a new location */
-router.post('/add', function(req, res) {
-//looks through the database with the name
-    req.db.collection('travel').findOne({'name': req.body.name}, function (err, doc) {
-        if (doc) {
-            return res.send("This place already exists! Please go back and enter a flower that doesn't exists")
+router.post('/add', function(req, res, next) {
+    //var name = req.body.name;
+   // var place = { 'id': ++counter + "" , 'name': name, 'visited': false };
+
+
+    //places.push(place);
+
+    req.db.collection('travel').insertOne(req.body, function(err){
+        if (err) {
+            return next(err);
         }
-        var name = req.body.name;
-        var place = {'id': ++counter + "", 'name': name, 'visited': false};
-
-        places.push(place);
-
-        console.log('After POST, the places list is');
-        console.log(places);
-
         res.status(201);      // Created
-        res.json(place);      // Send new object data back as JSON, if needed.
+        res.json(findID(req.body));      // Send new object data back as JSON, if needed.
 
-        // TODO may want to check if place already in list and don't add.
     });
 });
 
@@ -50,44 +78,34 @@ router.post('/add', function(req, res) {
 /* PUT - update whether a place has been visited or not */
 router.put('/update', function(req, res){
 
-  var id = req.body.id;
-  var visited = req.body.visited == "true";  // all the body parameters are strings
-
-  for (var i = 0 ; i < places.length ; i++) {
-    var place = places[i];
-    if (place.id == id) {
-      place.visited = visited;
-      places[i] = place;
+    var id = req.body.id;
+    var visited = req.body.visited == "true";  //
+    for (var i = 0 ; i < places.length ; i++) {
+        var place = places[i];
+        if (place.id == id) {
+            place.visited = visited;
+            places[i] = place;
+        }
     }
-  }
 
-  console.log('After PUT, the places list is');
-  console.log(places);
+    console.log('After PUT, the places list is');
+    console.log(places);
 
-  res.json(place);
+    res.json(place);
 
 });
 
 
-router.delete('/delete', function(req, res){
+router.post('/delete', function(req, res, next){
 
-  var place_id = req.body.id;
-  console.log(place_id);
+    req.db.collection('travel').remove(useID(req.body), function(err){
+        if (err) {
+            return next(err);
+        }
+        res.status(200);
+        res.json(req.body);
 
-  for (var i = 0 ; i < places.length ; i++) {
-    var place = places[i];
-    if (place.id == place_id) {
-      places.splice(i, 1);  //Delete the element at this position
-      res.json(place);
-      break;
-    }
-  }
-
-  console.log('After DELETE, the places list is');
-  console.log(places);
-
-  res.status(200);
-  res.end();
+    });
 
 });
 
