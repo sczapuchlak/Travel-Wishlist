@@ -26,20 +26,24 @@ router.get('/all', function(req, res) {
 
 /* POST - add a new location */
 router.post('/add', function(req, res) {
+//looks through the database with the name
+    req.db.collection('travel').findOne({'name': req.body.name}, function (err, doc) {
+        if (doc) {
+            return res.send("This place already exists! Please go back and enter a flower that doesn't exists")
+        }
+        var name = req.body.name;
+        var place = {'id': ++counter + "", 'name': name, 'visited': false};
 
-  var name = req.body.name;
-  var place = { 'id': ++counter + "" , 'name': name, 'visited': false };
+        places.push(place);
 
-  places.push(place);
+        console.log('After POST, the places list is');
+        console.log(places);
 
-  console.log('After POST, the places list is');
-  console.log(places);
+        res.status(201);      // Created
+        res.json(place);      // Send new object data back as JSON, if needed.
 
-  res.status(201);      // Created
-  res.json(place);      // Send new object data back as JSON, if needed.
-
-  // TODO may want to check if place already in list and don't add.
-
+        // TODO may want to check if place already in list and don't add.
+    });
 });
 
 
