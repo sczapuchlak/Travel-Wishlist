@@ -55,7 +55,7 @@ function addPlace(place, parent) {
     html += '<span class="controls"><input class="visited" id="' + place.id + '_is_visited" type="checkbox"/>'
   }
 
-  html += '<button id="'+ place.id +'_delete" class="delete">Delete?</button></span></div>';
+  html += '<button id="'+ place.id +'_delete" class="delete">Delete?</button><input type="hidden" name="name" value="{{place.id}}"></span></div>';
 
   parent.append(html);
 }
@@ -68,6 +68,7 @@ function deleteListener() {
   var elem_id = $(this).attr('id');         // Get the id of the element clicked, expected to be in the format '4_delete' for place id 4
   var id = elem_id.replace('_delete', '');  // Cut off the _delete part, left with the number id
   deletePlace(id);                          // Make AJAX request to delete the place with this ID
+
 }
 
 
@@ -148,20 +149,20 @@ function updateVisited(id, visited) {
 
 function deletePlace(id) {
 
-  $.ajax({
-    method: "DELETE",
-    url: "/delete",
-    data: { 'id': id }
-  }).done(function (data) {
-    console.log('DELETE complete');
-    // Select div containing this item, and remove from page
-    var selector_id = '#' + data.id + "";
-    $(selector_id).fadeOut(function(){
-      $(this).remove();
+    $.ajax({
+        method: "DELETE",
+        url: "/delete",
+        data: { 'id': id }
+    }).done(function (data) {
+        console.log('DELETE complete');
+        // Select div containing this item, and remove from page
+        var selector_id = '#' + data.id + "";
+        $(selector_id).fadeOut(function(){
+            $(this).remove();
+        });
+    }).fail(function (error) {
+        console.log('DELETE error');
+        console.log(error);
     });
-  }).fail(function (error) {
-    console.log('DELETE error');
-    console.log(error);
-  });
 }
 

@@ -95,15 +95,15 @@ router.put('/update', function(req, res){
 
 });
 
-
+//delete a location
 router.post('/delete', function(req, res, next){
+    console.log(req.body);
+    req.db.collection('travel').deleteOne(useID(req.body), function(err){
 
-    req.db.collection('travel').remove(useID(req.body), function(err){
         if (err) {
             return next(err);
         }
-        res.status(200);
-        res.json(req.body);
+        return res.redirect('/');
 
     });
 
